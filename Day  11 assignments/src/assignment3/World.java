@@ -10,7 +10,7 @@ public class World {
 
         for (int j = 0; j < 20; j++) {
 
-            Thread worker1 = new Thread(()->{i++});
+            Thread worker1 = new Thread(()->{i++;});
             worker1.start();
 
             Thread worker2 = new Thread(()->{
