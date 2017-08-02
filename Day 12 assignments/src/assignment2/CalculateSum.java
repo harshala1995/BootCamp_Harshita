@@ -1,5 +1,6 @@
 package assignment2;
 
+import java.util.ArrayList;
 import java.util.concurrent.*;
 
 /**
@@ -7,47 +8,33 @@ import java.util.concurrent.*;
  */
 public class CalculateSum {
     public static void main(String[] args) {
-        ExecutorService executor = Executors.newFixedThreadPool(10);
-        Future<Integer> future1 = executor.submit(new PrimeSumTask(1));
-        Future<Integer> future2 = executor.submit(new PrimeSumTask(101));
-        Future<Integer> future3 = executor.submit(new PrimeSumTask(201));
-        Future<Integer> future4 = executor.submit(new PrimeSumTask(301));
-        Future<Integer> future5 = executor.submit(new PrimeSumTask(401));
+        ExecutorService executor = Executors.newCachedThreadPool();
+        ArrayList<Future> futures = new ArrayList<>();
+
+        for (int i = 0; i < 5; i++) {
+            futures.add(executor.submit(new PrimeSumTask(i*100+1)));
+        }
 
         int sum = 0;
 
-        try {
-            if (!future1.isCancelled()) {
-                int rs = future1.get();
-                sum += rs;
-                System.out.printf("Result : %d%n", rs);
+        while(true){
+            for (int i = 0; i < futures.size(); i++) {
+                if(futures.get(i).isDone()){
+                    int rs = 0;
+                    try {
+                        rs = (int)((futures.get(i)).get());
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                    sum += rs;
+                    System.out.printf("Result : %d%n", rs);
+                    futures.remove(i);
+                }
             }
-            if (!future2.isCancelled()) {
-                int rs = future2.get();
-                sum += rs;
-                System.out.printf("Result : %d%n", rs);
-            }
-            if (!future3.isCancelled()) {
-                int rs = future3.get();
-                sum += rs;
-                System.out.printf("Result : %d%n", rs);
-            }
-            if (!future4.isCancelled()) {
-                int rs = future4.get();
-                sum += rs;
-                System.out.printf("Result : %d%n", rs);
-            }
-            if (!future5.isCancelled()) {
-                int rs = future5.get();
-                sum += rs;
-                System.out.printf("Result : %d%n", rs);
-            }
-        } catch (InterruptedException e) {
-            System.out.println("Thread got interrupted!!!");
-        } catch (ExecutionException e) {
-            System.out.println("Task can not be executed!!!");
-        } catch (CancellationException e) {
-            System.out.println("Task already got cancelled!!!");
+            if(futures.size() == 0)
+                break;
         }
         System.out.println("Sum = " + sum);
     }
